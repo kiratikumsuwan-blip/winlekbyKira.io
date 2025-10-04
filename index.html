@@ -12,37 +12,52 @@
             background-size: cover;
             color: black;
             margin: 0;
-            height: 100vh;
+            padding: 20px;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: column;
         }
+        .header-section {
+            margin-bottom: 15px;
+        }
+        .header-section h1 {
+            margin: 10px 0 5px 0;
+            font-size: 32px;
+        }
+        .header-section p {
+            margin: 5px 0;
+            font-size: 18px;
+        }
         .container {
             background: white;
-            padding: 20px;
+            padding: 15px;
             border-radius: 10px;
-            width: 50%;
+            width: 80%;
+            max-width: 900px;
             text-align: center;
-            margin-top: 20px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-            max-height: 300px;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
         }
         input[type="text"] {
-            padding: 10px;
-            font-size: 18px;
-            width: 200px;
+            padding: 12px;
+            font-size: 20px;
+            width: 220px;
             text-align: center;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
         button {
-            padding: 10px 20px;
-            margin: 10px;
+            padding: 12px 20px;
+            margin: 5px;
             border: none;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 18px;
             border-radius: 5px;
             display: inline-block;
         }
@@ -51,36 +66,36 @@
         .red-text { color: #e74c3c; font-weight: bold; }
         .blue-text { color: #3498db; font-weight: bold; }
         .result-box {
-            margin: 10px 0;
             padding: 10px;
             border-radius: 5px;
             background: #f9f9f9;
-            display: inline-block;
-            width: 80%;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .result-box .title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 18px;
+        }
+        .result-box p {
+            font-size: 16px;
+            margin: 5px 0;
+            line-height: 1.6;
         }
         .copy-btn {
             background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 6px 12px;
             cursor: pointer;
             margin-top: 5px;
             font-weight: bold;
             border-radius: 5px;
+            font-size: 14px;
             transition: background 0.3s ease;
         }
         .copy-btn:hover {
             background-color: #388E3C;
-        }
-        .copy-btn-right {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            font-size: 16px;
-            margin-left: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            border-radius: 5px;
         }
         #toast {
             visibility: hidden;
@@ -109,15 +124,12 @@
             right: 20px;
             z-index: 10;
         }
-
-        /* ✅ เพิ่มโลโก้ไลน์มุมซ้ายบน */
         #lineLogo {
             position: absolute;
             top: 20px;
             left: 20px;
             z-index: 20;
         }
-
         #lineLogo img {
             width: 50px;
             height: auto;
@@ -125,38 +137,37 @@
             box-shadow: 0px 2px 6px rgba(0,0,0,0.3);
             transition: transform 0.2s ease;
         }
-
         #lineLogo:hover img {
             transform: scale(1.1);
+        }
+        .checkbox-section {
+            margin: 8px 0;
         }
     </style>
 </head>
 <body>
 
-    <!-- ✅ โลโก้ไลน์มุมซ้ายบน -->
     <a href="https://line.me/ti/p/kO6JB-kSPm" target="_blank" id="lineLogo">
-    <img src="https://scdn.line-apps.com/n/line_add_friends/btn/en.png" alt="Add LINE" />
-</a>
+        <img src="https://scdn.line-apps.com/n/line_add_friends/btn/en.png" alt="Add LINE" />
+    </a>
 
-    <h1>โปรแกรมวินเลขจากหน้าไปหลัง</h1>
-    <p>ป้อนเลขที่ต้องการวิน อย่างน้อย 3 ตัว</p>
-    <input type="text" id="numberInput" placeholder="กรอกตัวเลข" autocomplete="off" 
-           onkeypress="handleEnter(event)" oninput="filterInput()">
-    <br>
-    <input type="checkbox" id="noDouble"> <label for="noDouble" class="red-text">ไม่รวมเบิ้ล</label>
-    <br>
-
-    <input type="file" id="imageInput" onchange="changeBackground(event)">
-    <br>
-
-    <div>
-        <button class="green" onclick="generateWinNumbers()">วินเลข</button>
-        <button class="red" onclick="resetPage()">เริ่มใหม่</button>
+    <div class="header-section">
+        <h1>โปรแกรมวินเลขจากหน้าไปหลัง</h1>
+        <p>ป้อนเลขที่ต้องการวิน อย่างน้อย 3 ตัว</p>
+        <input type="text" id="numberInput" placeholder="กรอกตัวเลข" autocomplete="off" 
+               onkeypress="handleEnter(event)" oninput="filterInput()">
+        <br>
+        <div class="checkbox-section">
+            <input type="checkbox" id="noDouble"> <label for="noDouble" class="red-text">ไม่รวมเบิ้ล</label>
+        </div>
+        <input type="file" id="imageInput" onchange="changeBackground(event)">
+        <div>
+            <button class="green" onclick="generateWinNumbers()">วินเลข</button>
+            <button class="red" onclick="resetPage()">เริ่มใหม่</button>
+        </div>
     </div>
 
-    <div class="container">
-        <div id="results"></div>
-    </div>
+    <div class="container" id="results"></div>
 
     <div id="toast">คัดลอกสำเร็จ!</div>
 
