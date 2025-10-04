@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โปรแกรมวินเลข</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: url('123.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: black;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 50%;
+            text-align: center;
+            margin-top: 20px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 18px;
+            width: 200px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .green { background-color: green; color: white; }
+        .red { background-color: red; color: white; }
+        .red-text { color: #e74c3c; font-weight: bold; }
+        .blue-text { color: #3498db; font-weight: bold; }
+        .result-box {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background: #f9f9f9;
+            display: inline-block;
+            width: 80%;
+        }
+        .copy-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-top: 5px;
+            font-weight: bold;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+        .copy-btn:hover {
+            background-color: #388E3C;
+        }
+        .copy-btn-right {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-left: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            text-align: center;
+            border-radius: 5px;
+            padding: 10px;
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s, top 0.5s;
+        }
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            top: 20px;
+        }
+        #imageInput {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+        }
+
+        /* ✅ เพิ่มโลโก้ไลน์มุมซ้ายบน */
+        #lineLogo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 20;
+        }
+
+        #lineLogo img {
+            width: 50px;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0px 2px 6px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease;
+        }
+
+        #lineLogo:hover img {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ✅ โลโก้ไลน์มุมซ้ายบน -->
+    <a href="https://line.me/ti/p/kO6JB-kSPm" target="_blank" id="lineLogo">
+    <img src="https://scdn.line-apps.com/n/line_add_friends/btn/en.png" alt="Add LINE" />
+</a>
+
+    <h1>โปรแกรมวินเลขจากหน้าไปหลัง</h1>
+    <p>ป้อนเลขที่ต้องการวิน อย่างน้อย 3 ตัว</p>
+    <input type="text" id="numberInput" placeholder="กรอกตัวเลข" autocomplete="off" 
+           onkeypress="handleEnter(event)" oninput="filterInput()">
+    <br>
+    <input type="checkbox" id="noDouble"> <label for="noDouble" class="red-text">ไม่รวมเบิ้ล</label>
+    <br>
+
+    <input type="file" id="imageInput" onchange="changeBackground(event)">
+    <br>
+
+    <div>
+        <button class="green" onclick="generateWinNumbers()">วินเลข</button>
+        <button class="red" onclick="resetPage()">เริ่มใหม่</button>
+    </div>
+
+    <div class="container">
+        <div id="results"></div>
+    </div>
+
+    <div id="toast">คัดลอกสำเร็จ!</div>
+
+    <script>
+        function handleEnter(event) {
+            if (event.key === "Enter") {
+                generateWinNumbers();
+            }
+        }
+
+        function generateWinNumbers() {
+            const input = document.getElementById("numberInput").value;
+            const noDouble = document.getElementById("noDouble").checked;
+            const digits = [...new Set(input.split('').sort())];
+            let results = "";
+
+            if (digits.length < 2) {
+                showToast("กรุณากรอกตัวเลขอย่างน้อย 2 ตัว");
+                return;
+            }
+
+            if (noDouble) {
+                const threeDigit = getCombinations(digits, 3);
+                const twoDigit = getCombinations(digits, 2);
+                results += createResultBox("เลข 3 ตัว ไม่รวมเบิ้ล", splitResultIntoLines(threeDigit, 15), "red-text");
+                results += createResultBox("เลข 2 ตัว ไม่รวมเบิ้ล", splitResultIntoLines(twoDigit, 15), "blue-text");
+            } else {
+                const threeDigit = getCombinations(digits, 3);
+                const threeDigitWithDouble = getCombinationsWithReplacement(digits, 3);
+                const twoDigit = getCombinations(digits, 2);
+                const twoDigitWithDouble = getCombinationsWithReplacement(digits, 2);
+
+                results += createResultBox("เลข 3 ตัว ไม่รวมเบิ้ล", splitResultIntoLines(threeDigit, 15), "red-text");
+                results += createResultBox("เลข 2 ตัว ไม่รวมเบิ้ล", splitResultIntoLines(twoDigit, 15), "blue-text");
+                results += createResultBox("เลข 3 ตัว รวมเบิ้ล", splitResultIntoLines(threeDigitWithDouble, 15), "red-text");
+                results += createResultBox("เลข 2 ตัว รวมเบิ้ล", splitResultIntoLines(twoDigitWithDouble, 15), "blue-text");
+            }
+
+            document.getElementById("results").innerHTML = results;
+        }
+
+        function splitResultIntoLines(result, limit) {
+            const lines = [];
+            for (let i = 0; i < result.length; i += limit) {
+                lines.push(result.slice(i, i + limit).join('-'));
+            }
+            return lines;
+        }
+
+        function createResultBox(title, numbers, colorClass) {
+            return `<div class="result-box">
+                        <div class="title">${title}</div>
+                        <p class="${colorClass}">${numbers.join('<br>')}</p>
+                        <button class="copy-btn" onclick="copyToClipboard('${numbers.join('-')}')">คัดลอก</button>
+                    </div>`;
+        }
+
+        function getCombinations(array, size) {
+            if (size === 1) return array.map(v => v);
+            let result = [];
+            array.forEach((item, index) => {
+                const smallerCombinations = getCombinations(array.slice(index + 1), size - 1);
+                smallerCombinations.forEach(combo => {
+                    result.push(item + combo);
+                });
+            });
+            return result;
+        }
+
+        function getCombinationsWithReplacement(array, size) {
+            if (size === 1) return array.map(v => v);
+            let result = [];
+            array.forEach((item, index) => {
+                const smallerCombinations = getCombinationsWithReplacement(array.slice(index), size - 1);
+                smallerCombinations.forEach(combo => {
+                    result.push(item + combo);
+                });
+            });
+            return result;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            showToast("คัดลอกสำเร็จ!");
+        }
+
+        function resetPage() {
+            document.getElementById("numberInput").value = "";
+            document.getElementById("results").innerHTML = "";
+        }
+
+        function showToast(message) {
+            let toast = document.getElementById("toast");
+            toast.innerText = message;
+            toast.classList.add("show");
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 3000);
+        }
+
+        function changeBackground(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.body.style.backgroundImage = `url(${e.target.result})`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function filterInput() {
+            const inputField = document.getElementById("numberInput");
+            const original = inputField.value;
+            const cleaned = original.replace(/[^0-9]/g, '');
+            if (original !== cleaned) {
+                inputField.value = cleaned;
+                showToast("กรอกได้เฉพาะตัวเลขเท่านั้น");
+            }
+        }
+    </script>
+
+</body>
+</html>
