@@ -63,6 +63,7 @@
         }
         .green { background-color: green; color: white; }
         .red { background-color: red; color: white; }
+        .light-green { background-color: #4CAF50; color: white; } /* เพิ่มสไตล์สำหรับปุ่มลากเลข */
         .red-text { color: #e74c3c; font-weight: bold; }
         .blue-text { color: #3498db; font-weight: bold; }
         .result-box {
@@ -144,19 +145,21 @@
         .checkbox-section {
             margin: 8px 0;
         }
+        #dragNumbersDisplay {
+            margin-top:5px;
+            font-weight:bold;
+        }
     </style>
 </head>
-<body>
-
-    <a href="https://line.me/ti/p/kO6JB-kSPm" target="_blank" id="lineLogo">
+<body onload="checkDragButton()"> <a href="https://line.me/ti/p/kO6JB-kSPm" target="_blank" id="lineLogo">
         <img src="https://scdn.line-apps.com/n/line_add_friends/btn/en.png" alt="Add LINE" />
     </a>
 
     <div class="header-section">
         <h1>โปรแกรมวินเลขจากหน้าไปหลัง</h1>
-        <p>ป้อนเลขที่ต้องการวิน อย่างน้อย 3 ตัว</p>
+        <p>ป้อนเลขที่ต้องการวิน อย่างน้อย 2 ตัว</p>
         <input type="text" id="numberInput" placeholder="กรอกตัวเลข" autocomplete="off" 
-               onkeypress="handleEnter(event)" oninput="filterInput()">
+                oninput="filterInput(); checkDragButton();" onkeydown="handleEnter(event)">
         <br>
         <div class="checkbox-section">
             <input type="checkbox" id="noDouble"> <label for="noDouble" class="red-text">ไม่รวมเบิ้ล</label>
@@ -164,48 +167,123 @@
         <input type="file" id="imageInput" onchange="changeBackground(event)">
         <div>
             <button class="green" onclick="generateWinNumbers()">วินเลข</button>
-            <button class="red" onclick="resetPage()">เริ่มใหม่</button>
+            <button id="dragBtn" class="light-green" style="margin:0 10px;" onclick="dragNumbers()">ลากเลข</button> <button class="red" onclick="resetPage()">เริ่มใหม่</button>
         </div>
+        <div id="dragNumbersDisplay"></div>
     </div>
 
     <div class="container" id="results"></div>
-
     <div id="toast">คัดลอกสำเร็จ!</div>
 
     <script>
+        const numberInput = document.getElementById("numberInput");
+        const dragBtn = document.getElementById("dragBtn");
+        const dragDisplay = document.getElementById("dragNumbersDisplay");
+
+        // ---------------- Handle Enter ----------------
         function handleEnter(event) {
             if (event.key === "Enter") {
                 generateWinNumbers();
             }
         }
 
+        // ---------------- Input Filter ----------------
+        function filterInput() {
+            const original = numberInput.value;
+            const cleaned = original.replace(/[^0-9]/g, '');
+            if (original !== cleaned) {
+                numberInput.value = cleaned;
+                showToast("กรอกได้เฉพาะตัวเลขเท่านั้น");
+            }
+        }
+
+        // ---------------- แสดงปุ่มลากเลข (ถูกแก้ไข) ----------------
+        function checkDragButton() {
+            // ฟังก์ชันนี้ถูกแก้ไขให้ใช้ควบคุมสีของปุ่มแทนการซ่อน/แสดง
+            if (/^\d{2}$/.test(numberInput.value)) {
+                // ถ้ามี 2 ตัว ให้เป็นสีเขียวเข้มเพื่อเน้นว่าใช้ได้
+                dragBtn.classList.remove('light-green');
+                dragBtn.classList.add('green');
+            } else {
+                // ถ้าไม่ถึง 2 ตัว ให้เป็นสีเขียวอ่อน
+                dragBtn.classList.remove('green');
+                dragBtn.classList.add('light-green');
+                dragDisplay.innerText = '';
+            }
+        }
+
+        // ---------------- ฟังก์ชันลากเลข ----------------
+        function dragNumbers() {
+            const input = numberInput.value;
+            if (/^\d{2}$/.test(input)) {
+                const numbers = [];
+                for (let i = 0; i <= 9; i++) {
+                    numbers.push(input + i);
+                }
+                dragDisplay.innerText = numbers.join(', ');
+            } else {
+                 showToast("กรุณากรอกตัวเลข 2 ตัวเพื่อใช้ฟังก์ชันลากเลข");
+            }
+        }
+
+        // ---------------- Generate Numbers ----------------
         function generateWinNumbers() {
-            const input = document.getElementById("numberInput").value;
+            let input = numberInput.value;
             const noDouble = document.getElementById("noDouble").checked;
-            const digits = [...new Set(input.split('').sort())];
+
+            let numbersToProcess = [];
+            if (/^\d{2}$/.test(input)) {
+                // กรณีเป็นเลข 2 ตัว ให้นำไปลากเลขและวินรวมกับ 0-9
+                for (let i = 0; i <= 9; i++) {
+                    numbersToProcess.push(input + i);
+                }
+            } else {
+                // กรณีเป็นเลขหลายตัว ให้นำแต่ละตัวมาวินกัน
+                numbersToProcess = [...new Set(input.split(''))];
+            }
+
             let results = "";
 
-            if (digits.length < 2) {
+            if (numbersToProcess.length < 2 && !/^\d{2}$/.test(input)) {
                 showToast("กรุณากรอกตัวเลขอย่างน้อย 2 ตัว");
                 return;
             }
 
-            if (noDouble) {
-                const threeDigit = getCombinations(digits, 3);
-                const twoDigit = getCombinations(digits, 2);
-                results += createResultBox("เลข 3 ตัว ไม่รวมเบิ้ล", splitResultIntoLines(threeDigit, 15), "red-text");
-                results += createResultBox("เลข 2 ตัว ไม่รวมเบิ้ล", splitResultIntoLines(twoDigit, 15), "blue-text");
-            } else {
-                const threeDigit = getCombinations(digits, 3);
-                const threeDigitWithDouble = getCombinationsWithReplacement(digits, 3);
-                const twoDigit = getCombinations(digits, 2);
-                const twoDigitWithDouble = getCombinationsWithReplacement(digits, 2);
+            // เนื่องจากเงื่อนไขการวินเลขมีความซับซ้อนตามรูปแบบของเลขที่ป้อน
+            // จะเน้นการแสดงผลตามเงื่อนไขหลักของเลขที่ผ่านการประมวลผลแล้ว
+            
+            // ใช้ input 2 ตัว (เช่น 12) -> numbersToProcess คือ [120, 121, ..., 129]
+            // ใช้ input 3 ตัว (เช่น 123) -> numbersToProcess คือ [1, 2, 3]
 
-                results += createResultBox("เลข 3 ตัว ไม่รวมเบิ้ล", splitResultIntoLines(threeDigit, 15), "red-text");
-                results += createResultBox("เลข 2 ตัว ไม่รวมเบิ้ล", splitResultIntoLines(twoDigit, 15), "blue-text");
-                results += createResultBox("เลข 3 ตัว รวมเบิ้ล", splitResultIntoLines(threeDigitWithDouble, 15), "red-text");
-                results += createResultBox("เลข 2 ตัว รวมเบิ้ล", splitResultIntoLines(twoDigitWithDouble, 15), "blue-text");
+            if (/^\d{2}$/.test(input)) {
+                 // ถ้าใช้การ 'ลากเลข' 2 ตัว เราจะวินเลขจากชุด 10 ตัวเลขที่สร้างขึ้น
+                const twoDigit = getCombinations(numbersToProcess, 2);
+                const twoDigitWithDouble = getCombinationsWithReplacement(numbersToProcess, 2);
+                const threeDigit = getCombinations(numbersToProcess, 3);
+                const threeDigitWithDouble = getCombinationsWithReplacement(numbersToProcess, 3);
+
+                // แสดงผลลัพธ์จากการวินเลขที่ลากมา
+                results += createResultBox("ผลวินจากเลข 10 ตัว", splitResultIntoLines(numbersToProcess, 15), "red-text");
+            } else {
+                // ถ้าใช้การ 'วินเลข' จากตัวเลขเดี่ยวๆ ที่ป้อน
+                if (noDouble) {
+                    const threeDigit = getCombinations(numbersToProcess, 3);
+                    const twoDigit = getCombinations(numbersToProcess, 2);
+                    results += createResultBox("เลข 3 ตัว ไม่รวมเบิ้ล", splitResultIntoLines(threeDigit, 15), "red-text");
+                    results += createResultBox("เลข 2 ตัว ไม่รวมเบิ้ล", splitResultIntoLines(twoDigit, 15), "blue-text");
+                } else {
+                    const threeDigit = getCombinations(numbersToProcess, 3);
+                    const threeDigitWithDouble = getCombinationsWithReplacement(numbersToProcess, 3);
+                    const twoDigit = getCombinations(numbersToProcess, 2);
+                    const twoDigitWithDouble = getCombinationsWithReplacement(numbersToProcess, 2);
+
+                    results += createResultBox("เลข 3 ตัว ไม่รวมเบิ้ล", splitResultIntoLines(threeDigit, 15), "red-text");
+                    results += createResultBox("เลข 2 ตัว ไม่รวมเบิ้ล", splitResultIntoLines(twoDigit, 15), "blue-text");
+                    results += createResultBox("เลข 3 ตัว รวมเบิ้ล", splitResultIntoLines(threeDigitWithDouble, 15), "red-text");
+                    results += createResultBox("เลข 2 ตัว รวมเบิ้ล", splitResultIntoLines(twoDigitWithDouble, 15), "blue-text");
+                }
             }
+
 
             document.getElementById("results").innerHTML = results;
         }
@@ -232,6 +310,8 @@
             array.forEach((item, index) => {
                 const smallerCombinations = getCombinations(array.slice(index + 1), size - 1);
                 smallerCombinations.forEach(combo => {
+                    // This handles combination without replacement/repetition
+                    // e.g., for [1, 2, 3] and size 2, it gives '12', '13', '23' (not '21', '31', '32')
                     result.push(item + combo);
                 });
             });
@@ -244,6 +324,8 @@
             array.forEach((item, index) => {
                 const smallerCombinations = getCombinationsWithReplacement(array.slice(index), size - 1);
                 smallerCombinations.forEach(combo => {
+                    // This handles combination with replacement/repetition
+                    // e.g., for [1, 2] and size 2, it gives '11', '12', '22' (not '21')
                     result.push(item + combo);
                 });
             });
@@ -256,7 +338,9 @@
         }
 
         function resetPage() {
-            document.getElementById("numberInput").value = "";
+            numberInput.value = "";
+            dragDisplay.innerText = '';
+            checkDragButton(); // เรียกเพื่อรีเซ็ตปุ่มลากเลขกลับเป็นสีอ่อน
             document.getElementById("results").innerHTML = "";
         }
 
@@ -277,16 +361,6 @@
                     document.body.style.backgroundImage = `url(${e.target.result})`;
                 };
                 reader.readAsDataURL(file);
-            }
-        }
-
-        function filterInput() {
-            const inputField = document.getElementById("numberInput");
-            const original = inputField.value;
-            const cleaned = original.replace(/[^0-9]/g, '');
-            if (original !== cleaned) {
-                inputField.value = cleaned;
-                showToast("กรอกได้เฉพาะตัวเลขเท่านั้น");
             }
         }
     </script>
